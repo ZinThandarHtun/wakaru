@@ -1,0 +1,2 @@
+class WriPolicy < ApplicationRecord
+end
