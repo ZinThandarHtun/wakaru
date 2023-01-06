@@ -1,7 +1,9 @@
 import React from "react";
 import "../../bundles/i18n/ja.js";
 import Highlighter from "react-highlight-words";
+
 import { Table, Space, Popconfirm, Input, Button, Tooltip, Card } from "antd";
+
 import {
   EditOutlined,
   DeleteOutlined,
@@ -43,14 +45,14 @@ class WritingPolicyList extends React.Component {
             size="small"
             style={{ width: 90 }}
           >
-            Search
+            検索
           </Button>
           <Button
             onClick={() => this.handleReset(clearFilters)}
             size="small"
             style={{ width: 90 }}
           >
-            Reset
+            リセット
           </Button>
           <Button
             type="link"
@@ -63,7 +65,7 @@ class WritingPolicyList extends React.Component {
               });
             }}
           >
-            Filter
+            フィルター
           </Button>
         </Space>
       </div>
@@ -185,7 +187,6 @@ class WritingPolicyList extends React.Component {
                 pageSize: 10,
                 showTotal: (total, range) =>
                   `${total}件の中から${range[0]}から${range[1]}を表示`,
-                
               }}
               total={this.props.dataSource.length}
             />
@@ -195,5 +196,4 @@ class WritingPolicyList extends React.Component {
     );
   }
 }
-
 export default WritingPolicyList;

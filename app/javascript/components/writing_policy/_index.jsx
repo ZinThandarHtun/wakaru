@@ -27,7 +27,6 @@ class WritingPolicy extends React.Component {
         if (data.ok) {
           return data.json();
         }
-        throw new Error("Network error.");
       })
       .then((data) => {
         if (data.errStatus == 1) {
@@ -51,8 +50,8 @@ class WritingPolicy extends React.Component {
               writing_policies: [...prevState.writing_policies, newNl],
             }));
           });
+          this.setState({ template_types: data.template_types });
         }
-        this.setState({ template_types: data.template_types });
       })
       .catch((err) => message.error("Error: " + err));
   };
@@ -62,64 +61,95 @@ class WritingPolicy extends React.Component {
   }
 
   createWritingPolicy = (values, enterForm) => {
-    const url = "/api/v1/writing_policy/create";
-
-    fetch(url, {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      body: JSON.stringify({
-        template_type_id: values.template_type_id,
-        display_order: parseInt(values.display_order),
-        template_name: values.template_name,
-        template_description: values.template_description,
-      }),
-    })
+    const url = "/api/v1/writing_policy/firstLoad";
+    fetch(url)
       .then((data) => {
         if (data.ok) {
           return data.json();
         }
-        throw new Error("Network error.");
       })
       .then((data) => {
-        if (data.errStatus == 1) {
+        let templateTypeId = data.writing_policies.filter(
+          (templateTypeId) =>
+            templateTypeId.template_type_id == values.template_type_id &&
+            templateTypeId.display_order == values.display_order
+        );
+        let temName = data.writing_policies.filter(
+          (temName) => temName.template_name == values.template_name
+        );
+        if (templateTypeId.length > 0) {
           this.setState({
-            message: data.message,
-            message_type: data.messageType,
+            message: "既に登録されている表示順です。",
+            message_type: "error",
             m_visible: true,
           });
         } else {
-          this.setState({
-            message: "登録しました。",
-            message_type: "success",
-            m_visible: true,
-          });
-          const { template_types } = this.state;
-          const template_Type = template_types.find(
-            (item) => item.id == data.template_type_id
-          );
+          if (Object.keys(temName).length == 1) {
+            this.setState({
+              message: "既に登録されているテンプレート名称です。",
+              message_type: "error",
+              m_visible: true,
+            });
+          } else {
+            let template_type_id = values.template_type_id;
+            console.log(template_type_id);
+            fetch(`http://localhost:3000/api/v1/writing_policy/create`, {
+              method: "POST",
 
-          const newEl = {
-            key: data.id,
-            id: data.id,
-            template_type: template_Type.template_type,
-            display_order: data.display_order,
-            template_name: data.template_name,
-            template_description: data.template_description,
-          };
+              headers: {
+                "Content-Type": "application/json",
+              },
 
-          this.setState((prevState) => ({
-            writing_policies: [...prevState.writing_policies, newEl],
-          }));
+              body: JSON.stringify({
+                template_type_id: values.template_type_id,
+                display_order: parseInt(values.display_order),
+                template_name: values.template_name,
+                template_description: values.template_description,
+              }),
+            })
+              .then((data) => {
+                if (data.ok) {
+                  return data.json();
+                }
+              })
+              .then((data) => {
+                if (data.errStatus == 1) {
+                  console.log("errStatus", data.errStatus);
+                  this.setState({
+                    message: data.message,
+                    message_type: data.messageType,
+                    m_visible: true,
+                  });
+                } else {
+                  this.setState({
+                    message: "登録しました。",
+                    message_type: "success",
+                    m_visible: true,
+                  });
+                  const { template_types } = this.state;
+                  const template_Type = template_types.find(
+                    (item) => item.id == data.template_type_id
+                  );
+
+                  const newEl = {
+                    key: data.id,
+                    id: data.id,
+                    template_type: template_Type.template_type,
+                    display_order: data.display_order,
+                    template_name: data.template_name,
+                    template_description: data.template_description,
+                  };
+
+                  this.setState((prevState) => ({
+                    writing_policies: [...prevState.writing_policies, newEl],
+                  }));
+                }
+              });
+            enterForm.current.resetFields();
+          }
         }
-        throw new Error("Network error.");
       });
-    enterForm.current.resetFields();
   };
-
   deleteStatus = (deleteAllData) => {
     fetch(
       `http://localhost:3000/api/v1/writing_policy/destroy/${deleteAllData.id}`,
@@ -150,7 +180,6 @@ class WritingPolicy extends React.Component {
             m_visible: true,
           });
         }
-        throw new Error("Network error.");
       });
   };
 
@@ -164,19 +193,45 @@ class WritingPolicy extends React.Component {
   }
 
   editStatus = (record) => {
-    let templateId = this.state.template_types.filter(
-      (i) => i.template_type == record.template_type
-    );
-    this.setState({
-      edit_status: true,
-      id: record.id,
-      template_type_id: templateId[0].id,
-      template_type: record.template_type,
-      display_order: record.display_order,
-      template_name: record.template_name,
-      template_description: record.template_description,
-    });
+    let id = record.id;
+    fetch(
+      `http://localhost:3000/api/v1/writing_policy/writing_policies_id_find/${id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
+      .then((data) => {
+        if (data.ok) {
+          return data.json();
+        }
+      })
+      .then((data) => {
+        if (data.errStatus == "Ok") {
+          let templateId = this.state.template_types.filter(
+            (i) => i.template_type == record.template_type
+          );
+          this.setState({
+            edit_status: true,
+            id: record.id,
+            template_type_id: templateId[0].id,
+            template_type: record.template_type,
+            display_order: record.display_order,
+            template_name: record.template_name,
+            template_description: record.template_description,
+          });
+        } else {
+          this.setState({
+            message: data.message,
+            message_type: data.messageType,
+            m_visible: true,
+          });
+        }
+      });
   };
+
   editWritingPolicy(id, itemAttributes) {
     var index = this.state.writing_policies.findIndex((x) => x.id === id);
     this.setState({
@@ -211,7 +266,6 @@ class WritingPolicy extends React.Component {
         if (data.ok) {
           return data.json();
         }
-        throw new Error("Network error.");
       })
       .then((data) => {
         if (data.errStatus == 1) {
@@ -247,24 +301,24 @@ class WritingPolicy extends React.Component {
           this.editWritingPolicy(data.id, data);
         }
         this.state.edit_status = false;
-        throw new Error("Network error.");
       });
     enterForm.current.resetFields();
   };
 
   writingPolicy = (values, enterForm) => {
+    let new_writing_policies = this.state.writing_policies.filter(
+      (writing_policy) => writing_policy.id !== values.writing_policy_id
+    );
     if (this.state.edit_status) {
-      let new_writing_policies = this.state.writing_policies.filter(
-        (writing_policy) => writing_policy.id !== values.writing_policy_id
-      );
-      let desOrder = new_writing_policies.filter(
-        (desOrder) => desOrder.display_order == values.display_order
+      let templateTypeId = new_writing_policies.filter(
+        (templateTypeId) =>
+          templateTypeId.template_type_id == values.template_type_id &&
+          templateTypeId.display_order == values.display_order
       );
       let temName = new_writing_policies.filter(
         (temName) => temName.template_name == values.template_name
       );
-
-      if (Object.keys(desOrder).length == 1) {
+      if (templateTypeId.length > 0) {
         this.setState({
           message: "既に登録されている表示順です。",
           message_type: "error",
@@ -281,34 +335,15 @@ class WritingPolicy extends React.Component {
         this.state.edit_status = false;
       }
     } else {
-      let desOrder = this.state.writing_policies.filter(
-        (desOrder) => desOrder.display_order == values.display_order
-      );
-      let temName = this.state.writing_policies.filter(
-        (temName) => temName.template_name == values.template_name
-      );
-      if (Object.keys(desOrder).length == 1) {
-        this.setState({
-          message: "既に登録されている表示順です。",
-          message_type: "error",
-          m_visible: true,
-        });
-      } else if (Object.keys(temName).length == 1) {
-        this.setState({
-          message: "既に登録されているテンプレート名称です。",
-          message_type: "error",
-          m_visible: true,
-        });
-      } else {
-        this.createWritingPolicy(values, enterForm);
-      }
+      this.createWritingPolicy(values, enterForm);
     }
   };
 
   handleClose = () => {
     this.setState({ m_visible: false });
   };
-
+  excel = () => {};
+  preview = () => {};
   render() {
     return (
       <>
@@ -336,5 +371,4 @@ class WritingPolicy extends React.Component {
     );
   }
 }
-
 export default WritingPolicy;

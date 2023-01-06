@@ -1,0 +1,2 @@
+class OutlineBasicInfo < ApplicationRecord
+end

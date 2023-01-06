@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 
 import { UserOutlined } from "@ant-design/icons";
 import logo from "../../../../app/assets/images/logo.svg";
+
 const { Sider } = Layout;
 const { SubMenu } = Menu;
 
@@ -49,6 +50,9 @@ class SideBar extends React.Component {
             </Menu.Item>
             <Menu.Item key="3">
               <Link to="/writing_policies"> {I18n.t("home.menu1.side7")}</Link>
+            </Menu.Item>
+            <Menu.Item key="4">
+              <Link to="/outline_basic_infos"> プレビュー</Link>
             </Menu.Item>
           </SubMenu>
           <Menu.Item key="8" icon={<UserOutlined />}>

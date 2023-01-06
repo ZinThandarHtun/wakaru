@@ -1,6 +1,7 @@
 import React from "react";
 import I18n from "i18n-js";
 import "../../bundles/i18n/ja.js";
+
 import {
   Form,
   Input,
@@ -77,6 +78,9 @@ class WritingPolicyEntry extends React.Component {
                 ]}
               >
                 <Select>
+                  <Select.Option Selected value="">
+                    テンプレート種類を選択してください
+                  </Select.Option>
                   {this.props.template_types.map((template_type) => (
                     <Select.Option
                       value={template_type.id}
@@ -94,8 +98,9 @@ class WritingPolicyEntry extends React.Component {
               >
                 <InputNumber
                   min={1}
+                  maxLength={10}
                   style={{
-                    width: 510,
+                    width: "100%",
                   }}
                 />
               </Form.Item>
@@ -109,7 +114,7 @@ class WritingPolicyEntry extends React.Component {
                   },
                 ]}
               >
-                <Input />
+                <Input maxLength={255} />
               </Form.Item>
               <Form.Item
                 name="template_description"
@@ -121,7 +126,7 @@ class WritingPolicyEntry extends React.Component {
                   },
                 ]}
               >
-                <Input.TextArea />
+                <Input.TextArea maxLength={255} />
               </Form.Item>
 
               <Form.Item wrapperCol={{ ...layout.wrapperCol, offset: 8 }}>
@@ -139,5 +144,4 @@ class WritingPolicyEntry extends React.Component {
     );
   }
 }
-
 export default WritingPolicyEntry;
